@@ -1,26 +1,19 @@
-import React from 'react';
-import logo from './logo.svg';
+import { FC } from 'react';
+import { BrowserRouter as Router, Redirect, Route, Switch } from "react-router-dom";
+import { HomeView } from "./views/HomeView";
+import { RoomView } from "./views/RoomView";
 import './App.css';
 
-function App() {
+export const App: FC = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Switch>
+        <Route path="/" exact component={HomeView} />
+        {/* <Route path="/create-room" component={CreateRoomView} />
+        <Route path="/join-room" component={JoinRoomView} /> */}
+        <Route path="/room/:roomId" exact component={RoomView} />
+        <Redirect path="*" to="/" />
+      </Switch>
+    </Router>
   );
 }
-
-export default App;
