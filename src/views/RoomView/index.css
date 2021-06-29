@@ -1,0 +1,14 @@
+.room {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.room__messageList {
+  flex: 1 1 auto;
+  overflow: scroll;
+}
+
+.room__input {
+  flex: 0 0 auto;
+}

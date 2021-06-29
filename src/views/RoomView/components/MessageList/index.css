@@ -1,0 +1,26 @@
+.messageList {
+  list-style: none;
+  padding: 15px;
+  margin: 0;
+}
+
+.messageList__message {
+  margin: 10px 0;
+}
+
+.message {
+  display: flex;
+}
+
+.message__author {
+  flex: 0 0 150px;
+  font-weight: bold;
+  margin-right: 15px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.message__body {
+  flex: 1 1 auto;
+}

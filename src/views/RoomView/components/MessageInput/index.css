@@ -1,0 +1,17 @@
+.messageInput {
+  display: flex;
+  width: 100%;
+  border-top: 1px solid black;
+}
+
+.messageInput__field {
+  flex: 1 1 auto;
+  padding: 15px;
+  border: none;
+}
+
+.messageInput__buttonWrapper {
+  flex: 0 0 auto;
+  padding: 15px;
+  padding-left: 0;
+}

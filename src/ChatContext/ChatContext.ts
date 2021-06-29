@@ -3,10 +3,14 @@ import { IMessage } from "./types/IMessage";
 import { IChatContext } from "./types/IChatContext";
 import { IUser, UserColor } from "./types/IUser";
 
+function randColor () {
+  return Math.floor(Math.random()*16777215).toString(16);
+}
+
 export const useRootChatContextValue = (roomId: string): IChatContext => {
   const [messages, _setMessages] = useState<IMessage[]>([]);
   const [name, _setName] = useState<string>("User");
-  const [color, _setColor] = useState<UserColor>("red");
+  const [color, _setColor] = useState<UserColor>(`#${randColor()}`);
 
   const meUser = useMemo<IUser>(() => ({name, color}), [name, color]);
 
