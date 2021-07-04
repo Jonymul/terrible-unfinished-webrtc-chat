@@ -16,7 +16,8 @@ export class Room extends EventEmitter<"userJoin" | "userLeave" | "message"> {
 
     peer.on("open", () => {
       if (roomId !== undefined) {
-        peer.connect(roomId);
+        const hostConnection = peer.connect(roomId);
+        this.onRemotePeerConnected(hostConnection);
       }
     });
   }
@@ -27,32 +28,30 @@ export class Room extends EventEmitter<"userJoin" | "userLeave" | "message"> {
   }
 
   private onRemotePeerConnected(dataConnection: Peer.DataConnection) {
-    console.log("Remote peer connected", dataConnection.label);
+    console.log("Remote peer connected", dataConnection.peer);
     const remotePeer = new RemotePeer(dataConnection);
 
     
     remotePeer.on("message", this.onRemoteMessage.bind(this));
-    remotePeer.on("close", () => this.onRemotePeerDisconnected(dataConnection));
-    this.remotePeers[dataConnection.label] = remotePeer;
+    remotePeer.on("close", this.onRemotePeerDisconnected.bind(this, remotePeer));
+    this.remotePeers[dataConnection.peer] = remotePeer;
     this.emit("userJoin");
   }
 
-  private onRemotePeerDisconnected(dataConnection: Peer.DataConnection) {
-    const remotePeer = this.remotePeers[dataConnection.label];
+  private onRemotePeerDisconnected(remotePeer: RemotePeer) {
+    console.log("Remote peer disconnected", remotePeer.peerId);
     remotePeer.off("message", this.onRemoteMessage);
 
-    delete this.remotePeers[dataConnection.label];
+    delete this.remotePeers[remotePeer.peerId];
     this.emit("userLeave");
   }
 
   private onRemoteMessage(message: IMessage) {
-    console.log("message received", message);
     this.emit("message", message);
   }
 
   sendMessage (message: IMessage) {
     const peerIds = Object.keys(this.remotePeers);
-    console.log("Sending message to peers:", peerIds);
 
     peerIds.forEach((peerId) => {
       this.remotePeers[peerId].sendMessage(message);

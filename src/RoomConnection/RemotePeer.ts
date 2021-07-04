@@ -7,17 +7,15 @@ import { PeerMessage } from "./types/PeerMessage";
 export class RemotePeer extends EventEmitter<"message" | "userInfo" | "close"> {
   private dataConnection: Peer.DataConnection;
   userInfo: IUser | undefined;
+  peerId: string;
 
   constructor (dataConnection: Peer.DataConnection) {
     super();
     this.dataConnection = dataConnection;
-    dataConnection.on("open", () => console.log("DC OPEN"));
-    dataConnection.on("data", () => console.log("DC DATA"));
-    dataConnection.on("error", () => console.log("DC ERROR"));
-    dataConnection.on("close", () => console.log("DC CLOSE"));
+    this.peerId = dataConnection.peer;
 
-    dataConnection.on("data", this.onDataConnectionData);
-    dataConnection.on("close", this.onDataConnectionClose);
+    dataConnection.on("data", this.onDataConnectionData.bind(this));
+    dataConnection.on("close", this.onDataConnectionClose.bind(this));
   }
 
   onDataConnectionData (data: PeerMessage) {

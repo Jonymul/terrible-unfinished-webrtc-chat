@@ -55,7 +55,7 @@ export const useRootChatContextValue = (roomId?: string): IChatContext => {
     return () => {
       room.off("message", handleMessageReceived);
     };
-  }, [room]);
+  }, [room, handleMessageReceived]);
 
   return {
     messages,
