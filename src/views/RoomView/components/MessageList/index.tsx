@@ -18,8 +18,8 @@ export const MessageList: FC<{ className?: string }> = (props) => {
   return (
     <div className={props.className}>
       <ul className="messageList">
-        {messages.map((m) => (
-          <li className="messageList__message"><Message message={m} /></li>
+        {messages.map((m, index) => (
+          <li key={index} className="messageList__message"><Message message={m} /></li>
         ))}
       </ul>
     </div>
