@@ -1,16 +1,25 @@
-import { createContext, useCallback, useMemo, useState } from "react";
+import { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import { IMessage } from "./types/IMessage";
 import { IChatContext } from "./types/IChatContext";
 import { IUser, UserColor } from "./types/IUser";
+import { Room } from "../RoomConnection/Room";
 
 function randColor () {
-  return Math.floor(Math.random()*16777215).toString(16);
+  return `#${Math.floor(Math.random()*16777215).toString(16)}`;
 }
 
-export const useRootChatContextValue = (roomId: string): IChatContext => {
+function randUser () {
+  return `User ${Math.floor(Math.random() * 10000)}`;
+}
+
+export const useRootChatContextValue = (roomId?: string): IChatContext => {
   const [messages, _setMessages] = useState<IMessage[]>([]);
-  const [name, _setName] = useState<string>("User");
-  const [color, _setColor] = useState<UserColor>(`#${randColor()}`);
+  const [name, _setName] = useState<string>(randUser());
+  const [color, _setColor] = useState<UserColor>(randColor());
+  const room = useMemo(() => {
+    console.log("room created");
+    return new Room(roomId);
+  }, []);
 
   const meUser = useMemo<IUser>(() => ({name, color}), [name, color]);
 
@@ -23,8 +32,8 @@ export const useRootChatContextValue = (roomId: string): IChatContext => {
     };
 
     _setMessages([...messages, newMessage]);
-    // TODO: Inform peers
-  }, [meUser, messages]);
+    room.sendMessage(newMessage);
+  }, [meUser, messages, room]);  
 
   const setName = useCallback((name: string) => {
     _setName(name);
@@ -35,6 +44,18 @@ export const useRootChatContextValue = (roomId: string): IChatContext => {
     _setColor(color);
     // TODO: Inform peers
   }, []);
+
+  const handleMessageReceived = useCallback((newMessage: IMessage) => {
+    _setMessages([...messages, newMessage]);
+  }, [messages]);
+
+  useEffect(() => {
+    room.on("message", handleMessageReceived);
+
+    return () => {
+      room.off("message", handleMessageReceived);
+    };
+  }, [room]);
 
   return {
     messages,

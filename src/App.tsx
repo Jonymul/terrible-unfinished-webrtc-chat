@@ -11,6 +11,7 @@ export const App: FC = () => {
         <Route path="/" exact component={HomeView} />
         {/* <Route path="/create-room" component={CreateRoomView} />
         <Route path="/join-room" component={JoinRoomView} /> */}
+        <Route path="/room" exact component={RoomView} />
         <Route path="/room/:roomId" exact component={RoomView} />
         <Redirect path="*" to="/" />
       </Switch>
