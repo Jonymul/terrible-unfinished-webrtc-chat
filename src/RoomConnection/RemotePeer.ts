@@ -4,7 +4,7 @@ import { IMessage } from "../ChatContext/types/IMessage";
 import { IUser } from "../ChatContext/types/IUser";
 import { PeerMessage } from "./types/PeerMessage";
 
-export class RemotePeer extends EventEmitter<"message" | "userInfo" | "close"> {
+export class RemotePeer extends EventEmitter<"message" | "userInfo" | "peerList" | "open" | "close"> {
   private dataConnection: Peer.DataConnection;
   userInfo: IUser | undefined;
   peerId: string;
@@ -16,6 +16,7 @@ export class RemotePeer extends EventEmitter<"message" | "userInfo" | "close"> {
 
     dataConnection.on("data", this.onDataConnectionData.bind(this));
     dataConnection.on("close", this.onDataConnectionClose.bind(this));
+    dataConnection.on("open", this.onDataConnectionOpen.bind(this));
   }
 
   onDataConnectionData (data: PeerMessage) {
@@ -31,9 +32,16 @@ export class RemotePeer extends EventEmitter<"message" | "userInfo" | "close"> {
         this.userInfo = data.payload.user;
         this.emit("userInfo", data.payload.user);
         break;
+      case "PEER_LIST":
+        this.emit("peerList", data.payload.peers);
+        break;
       default:
         return; // Unknown type
     }
+  }
+
+  private onDataConnectionOpen () {
+    this.emit("open");
   }
 
   private onDataConnectionClose () {
@@ -46,6 +54,15 @@ export class RemotePeer extends EventEmitter<"message" | "userInfo" | "close"> {
       payload: {
         message: message,
       },
-    } as PeerMessage)
+    } as PeerMessage);
+  }
+
+  sendPeerList (peers: string[]) {
+    this.dataConnection.send({
+      type: "PEER_LIST",
+      payload: {
+        peers: peers,
+      },
+    } as PeerMessage);
   }
 }

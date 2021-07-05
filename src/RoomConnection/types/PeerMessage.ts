@@ -11,4 +11,9 @@ export type PeerMessage = {
   payload: {
     user: IUser;
   };
+} | {
+  type: "PEER_LIST";
+  payload: {
+    peers: string[];
+  };
 };

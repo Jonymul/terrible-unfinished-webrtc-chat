@@ -16,10 +16,16 @@ export class Room extends EventEmitter<"userJoin" | "userLeave" | "message"> {
 
     peer.on("open", () => {
       if (roomId !== undefined) {
-        const hostConnection = peer.connect(roomId);
-        this.onRemotePeerConnected(hostConnection);
+        this.connectToPeer(roomId);
       }
     });
+  }
+
+  private connectToPeer(peerId: string) {
+    const hostConnection = this.peer.connect(peerId);
+    const remotePeer = new RemotePeer(hostConnection);
+    this.initRemoteDataConnection(remotePeer);
+    this.remotePeers[remotePeer.peerId] = remotePeer;
   }
   
   private onSignallingConnected(id: string) {
@@ -27,15 +33,23 @@ export class Room extends EventEmitter<"userJoin" | "userLeave" | "message"> {
     this.localPeerId = id;
   }
 
-  private onRemotePeerConnected(dataConnection: Peer.DataConnection) {
-    console.log("Remote peer connected", dataConnection.peer);
-    const remotePeer = new RemotePeer(dataConnection);
-
-    
+  private initRemoteDataConnection(remotePeer: RemotePeer) {
     remotePeer.on("message", this.onRemoteMessage.bind(this));
+    remotePeer.on("peerList", this.onPeerList.bind(this));
     remotePeer.on("close", this.onRemotePeerDisconnected.bind(this, remotePeer));
-    this.remotePeers[dataConnection.peer] = remotePeer;
+  }
+
+  private onRemotePeerConnected(dataConnection: Peer.DataConnection) {
+    const remotePeer = new RemotePeer(dataConnection);
+    console.log("Remote peer connected", dataConnection.peer);
+    this.initRemoteDataConnection(remotePeer);
+    this.remotePeers[remotePeer.peerId] = remotePeer;
     this.emit("userJoin");
+
+    remotePeer.on("open", () => {
+      console.log("Sending peer list");
+      remotePeer.sendPeerList(Object.keys(this.remotePeers));
+    });
   }
 
   private onRemotePeerDisconnected(remotePeer: RemotePeer) {
@@ -48,6 +62,17 @@ export class Room extends EventEmitter<"userJoin" | "userLeave" | "message"> {
 
   private onRemoteMessage(message: IMessage) {
     this.emit("message", message);
+  }
+
+  private onPeerList(peers: string[]) {
+    const knownPeers = Object.keys(this.remotePeers);
+    const unknownPeers = peers.filter((peerId) => knownPeers.indexOf(peerId) === -1 && peerId !== this.localPeerId);
+
+    console.log("Peer list received:", peers);
+
+    unknownPeers.forEach(peerId => {
+      this.connectToPeer(peerId);
+    });
   }
 
   sendMessage (message: IMessage) {
